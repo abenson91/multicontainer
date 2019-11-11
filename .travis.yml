@@ -1,0 +1,23 @@
+language: node.js
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t abenson91/client -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true abenson91/client npm test
+
+after_success:
+  - docker build -t abenson91/multi-client ./client
+  - docker build -t abenson91/multi-nginx ./nginx
+  - docker build -t abenson91/multi-server ./server
+  - docker build -t abenson91/multi-worker ./worker
+  - echo $DOCKER_CRED | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push abenson91/multi-client
+  - docker push abenson91/multi-nginx
+  - docker push abenson91/multi-server
+  - docker push abenson91/multi-worker
